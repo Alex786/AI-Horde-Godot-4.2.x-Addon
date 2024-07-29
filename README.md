@@ -30,4 +30,4 @@ There's a few other helper nodes, but these are the primary ones you should use 
 
 Run this project using the Demo scene. Press the button to keep generating new images into the grid.
 
-You can also try out [Lucid Creations](https://github.com/db0/Lucid-Creations) which is my fully-fledged client using this addon.
+You can also try out [Lucid Creations](https://github.com/db0/Lucid-Creations) which is [@db0](https://github.com/db0)'s fully-fledged client using this addon.
