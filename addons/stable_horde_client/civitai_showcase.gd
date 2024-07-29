@@ -6,12 +6,12 @@ signal showcase_retrieved(img, model_name)
 var model_reference := {}
 var texture: ImageTexture
 var model_name: String
-export(int) var showcase_index := 0
+@export var showcase_index := 0
 
 func _ready():
 	# warning-ignore:return_value_discarded
 	timeout = 2
-	connect("request_completed",self,"_on_request_completed")
+	connect("request_completed", Callable(self, "_on_request_completed"))
 
 func get_model_showcase(_model_reference) -> void:
 	model_reference = _model_reference
