@@ -2,13 +2,13 @@
 class_name AIImageTexture
 extends ImageTexture
 
-const FILENAME_TEMPLATE := "{timestamp}_{gen_seed}"
-const DIRECTORY_TEMPLATE := "{sampler_name}_{steps}_{prompt}"
+const FILENAME_TEMPLATE: String = "{timestamp}_{gen_seed}"
+const DIRECTORY_TEMPLATE: String = "{sampler_name}_{steps}_{prompt}"
 
 # The prompt which generated this image
 var prompt: String
 # The seed which generated this image
-var gen_seed : String
+var gen_seed: String
 # The sampler which generated this image
 var sampler_name: String
 # The amount of steps used to generate this image
@@ -43,7 +43,7 @@ func _init(
 		_control_type: String,
 		_image: Image,
 		_image_horde_id: String) -> void:
-	super._init()
+	super()
 	prompt = _prompt
 	attributes = _imgen_params.duplicate(true)
 	attributes.erase('n')
@@ -106,23 +106,22 @@ func get_full_filename_path(save_dir_path: String, extension = "png") -> String:
 	return(filename)
 
 func save_in_dir(save_dir_path: String) -> void:
-	var dir = DirAccess.new()
-	var error = dir.open(save_dir_path)
+	var dir = DirAccess.new.call()
+	var error: Error = dir.open(save_dir_path)
 	if error != OK:
 		dir.make_dir(save_dir_path)
 	error = dir.open(save_dir_path)
 	if error != OK:
 		push_error("Could not create directory: " + save_dir_path)
 		return
-	var filename = get_full_filename_path(save_dir_path)
+	var filename: String = get_full_filename_path(save_dir_path)
 	dir.make_dir(get_dirname())
 	error = image.save_png(filename)
 	save_attributes_to_file(get_full_filename_path(save_dir_path, "json"))
 
 # This assumes the parent directory has been created already
-func save_attributes_to_file(filepath:String) -> void:
-	var file = File.new()
-	file.open(filepath, File.WRITE)
+func save_attributes_to_file(filepath: String) -> void:
+	var file: FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
 	file.store_string(JSON.stringify(attributes, '\t'))
 	file.close()
 	

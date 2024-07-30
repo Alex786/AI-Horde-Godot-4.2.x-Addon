@@ -3,7 +3,7 @@ extends HTTPRequest
 
 signal showcase_retrieved(img, model_name)
 
-var model_reference := {}
+var model_reference: Dictionary = {}
 var texture: ImageTexture
 var model_name: String
 
@@ -20,9 +20,9 @@ func get_model_showcase(_model_reference) -> void:
 	var showcase_list = model_reference.showcases
 	Utils.shuffle_array(showcase_list)
 	var showcase_url = showcase_list[0]
-	var error = request(showcase_url, [], false, HTTPClient.METHOD_GET)
+	var error: Error = request(showcase_url, [], HTTPClient.METHOD_GET)
 	if error != OK:
-		var error_msg := "Something went wrong when initiating the request"
+		var error_msg: String = "Something went wrong when initiating the request"
 		push_error(error_msg)
 		emit_signal("request_failed",error_msg)
 
@@ -42,7 +42,7 @@ func _on_request_completed(_result, response_code, _headers, body):
 	if image_error != OK:
 		image_error = image.load_jpg_from_buffer(body)
 		if image_error != OK:
-			var error_msg := "Download showcase image could not be loaded. Please contact the developer of this addon"
+			var error_msg: String = "Download showcase image could not be loaded. Please contact the developer of this addon"
 			push_error(error_msg)
 			return
 	texture = ImageTexture.new()

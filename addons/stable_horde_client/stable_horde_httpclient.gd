@@ -6,15 +6,15 @@ signal request_failed(error_msg)
 signal request_warning(warning_msg)
 
 enum States {
-	READY
-	WORKING
+	READY,
+	WORKING,
 	CANCELLING
 }
 # When set to true, we will abort the current generation and try to retrieve whatever images we can
 @export var aihorde_url: String = "https://aihorde.net"
 @export var client_agent: String = "AI Horde Godot Addon:2.7.0:db0#1625"
-var state : int = States.READY
-var service_name :String = "AI Horde"
+var state: int = States.READY
+var service_name: String = "AI Horde"
 
 func _ready():
 	# warning-ignore:return_value_discarded

@@ -30,17 +30,17 @@ func get_lora_reference() -> void:
 		push_warning("CivitAI Lora RefCounted currently working. Cannot do more than 1 request at a time with the same Stable Horde Model RefCounted.")
 		return
 	state = States.WORKING
-	var error = request(horde_default_loras, [], false, HTTPClient.METHOD_GET)
+	var error: Error = request(horde_default_loras, [], HTTPClient.METHOD_GET)
 	if error != OK:
-		var error_msg := "Something went wrong when initiating the request"
+		var error_msg: String = "Something went wrong when initiating the request"
 		push_error(error_msg)
 		state = States.READY
 		emit_signal("request_failed",error_msg)
 
 func _get_url(query) -> String:
-	var final_url : String = ''
+	var final_url: String = ''
 	if typeof(query) == TYPE_ARRAY:
-		var idsq = '&ids='.join(query)
+		var idsq: String = '&ids='.join(query)
 		final_url = "https://civitai.com/api/v1/models?limit=100&" + idsq
 	elif query.is_valid_int():
 		final_url = "https://civitai.com/api/v1/models/" + query
@@ -59,15 +59,15 @@ func seek_online(query: String) -> void:
 	fetch_lora_metadata(query)
 
 func fetch_next_page(json_ret: Dictionary) -> void:
-	var next_page_url = json_ret["metadata"]["nextPage"]
-	var error = request(next_page_url, [], false, HTTPClient.METHOD_GET)
+	var next_page_url: String = json_ret["metadata"]["nextPage"]
+	var error: Error = request(next_page_url, [], HTTPClient.METHOD_GET)
 	if error != OK:
-		var error_msg := "Something went wrong when initiating the request"
+		var error_msg: String = "Something went wrong when initiating the request"
 		push_error(error_msg)
 		emit_signal("request_failed",error_msg)
 
 func fetch_lora_metadata(query) -> void:
-	var new_fetch = CivitAIModelFetch.new()
+	var new_fetch: CivitAIModelFetch = CivitAIModelFetch.new()
 	new_fetch.connect("lora_info_retrieved", Callable(self, "_on_lora_info_retrieved"))
 	new_fetch.connect("lora_info_gathering_finished", Callable(self, "_on_lora_info_gathering_finished").bind(new_fetch))
 	new_fetch.default_ids = default_ids
@@ -82,7 +82,7 @@ func process_request(json_ret) -> void:
 		state = States.READY
 		return
 	if typeof(json_ret) != TYPE_DICTIONARY:
-		var error_msg : String = "Unexpected model reference received"
+		var error_msg: String = "Unexpected model reference received"
 		push_error("Unexpected model reference received" + ': ' +  str(json_ret))
 		emit_signal("request_failed",error_msg)
 		state = States.READY
@@ -92,7 +92,7 @@ func process_request(json_ret) -> void:
 		json_ret["items"] = [json_ret]
 	for entry in json_ret["items"]:
 		if initialized:
-			var lora = _parse_civitai_lora_data(entry)
+			var lora: Dictionary = _parse_civitai_lora_data(entry)
 			if lora.has("size_mb"):
 				_store_lora(lora)
 	_store_to_file()
@@ -130,22 +130,20 @@ func get_lora_name(lora_name: String) -> String:
 	return lora_reference.get(lora_name, {}).get("name", 'N/A')
 
 func _store_to_file() -> void:
-	var file = File.new()
-	file.open("user://civitai_lora_reference", File.WRITE)
+	var file = FileAccess.open("user://civitai_lora_reference", FileAccess.WRITE)
 	file.store_var(lora_reference)
 	file.close()
 
 func _load_from_file() -> void:
-	var file = File.new()
-	file.open("user://civitai_lora_reference", File.READ)
-	var filevar = file.get_var()
+	var file = FileAccess.open("user://civitai_lora_reference", FileAccess.READ)
+	var filevar: Dictionary = file.get_var()
 	if filevar:
 		lora_reference = filevar
 	for lora in lora_reference.values():
 		lora_id_index[int(lora["id"])] = lora["name"]
 		lora["cached"] = true
 		# Temporary while changing approach
-		var unusable = lora.get("unusable", false)
+		var unusable: bool = lora.get("unusable", false)
 		if typeof(unusable) == TYPE_BOOL and unusable == false:
 			lora["unusable"] = 'Attention! This LoRa is unusable because it does not provide file validation.'
 		elif typeof(unusable) == TYPE_BOOL:
@@ -154,7 +152,7 @@ func _load_from_file() -> void:
 	emit_signal("reference_retrieved", lora_reference)
 
 func calculate_downloaded_loras() -> int:
-	var total_size = 0
+	var total_size: int = 0
 	for lora in self.lora_reference:
 		if self.lora_reference[lora].get("cached", false):
 			continue
@@ -162,7 +160,7 @@ func calculate_downloaded_loras() -> int:
 	return total_size
 
 func _parse_civitai_lora_data(civitai_entry) -> Dictionary:
-	var lora_details = {
+	var lora_details: Dictionary = {
 		"name": civitai_entry["name"],
 		"id": int(civitai_entry["id"]),
 		"description": civitai_entry["description"],
@@ -170,7 +168,7 @@ func _parse_civitai_lora_data(civitai_entry) -> Dictionary:
 	}
 	if not lora_details["description"]:
 		lora_details["description"] = ''
-	var html_to_bbcode = {
+	var html_to_bbcode: Dictionary = {
 		"<p>": '',
 		"</p>": '\n',
 		"</b>": '[/b]',
@@ -239,6 +237,6 @@ func set_nsfw(value) -> void:
 	nsfw = value
 
 func _store_lora(lora_data: Dictionary) -> void:
-	var lora_name = lora_data["name"]
+	var lora_name: Array = lora_data["name"]
 	lora_reference[lora_name] = lora_data
 	lora_id_index[int(lora_data["id"])] = lora_name

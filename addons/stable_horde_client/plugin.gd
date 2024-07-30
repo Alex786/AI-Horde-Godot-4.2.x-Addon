@@ -13,7 +13,7 @@ const SH_CLIENT = preload("stable_horde_client.gd")
 const SH_MODELS = preload("stable_horde_models.gd")
 const SH_LOGIN = preload("stable_horde_login.gd")
 const SH_RATE_GEN = preload("stable_horde_rate_generation.gd")
-const ICON = preload("res://addons/stable_horde_client/icon.png")
+const ICON = preload("icon.png")
 
 
 func _enter_tree():

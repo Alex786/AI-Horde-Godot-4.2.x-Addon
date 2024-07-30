@@ -6,35 +6,35 @@ signal image_processing(stats)
 signal kudos_calculated(kudos)
 
 enum SamplerMethods {
-	k_lms = 0
-	k_heun
-	k_euler
-	k_euler_a
-	k_dpm_2
-	k_dpm_2_a
-	k_dpm_fast
-	k_dpm_adaptive
-	k_dpmpp_2s_a
-	k_dpmpp_2m
+	k_lms = 0,
+	k_heun,
+	k_euler,
+	k_euler_a,
+	k_dpm_2,
+	k_dpm_2_a,
+	k_dpm_fast,
+	k_dpm_adaptive,
+	k_dpmpp_2s_a,
+	k_dpmpp_2m,
 	dpmsolver
 }
 
 enum ControlTypes {
-	none = 0
-	canny
-	hed
-	depth
-	normal
-	openpose
-	seg
-	scribble
-	fakescribbles
+	none = 0,
+	canny,
+	hed,
+	depth,
+	normal,
+	openpose,
+	seg,
+	scribble,
+	fakescribbles,
 	hough
 }
 
 enum OngoingRequestOperations {
-	CHECK
-	GET
+	CHECK,
+	GET,
 	CANCEL
 }
 
@@ -43,72 +43,72 @@ enum OngoingRequestOperations {
 # You can pass either your own key (make sure you encrypt your app)
 # Or ask each player to register on their own
 # You can also pass the 0000000000 Anonymous key, but it has the lowest priority
-@export var api_key := '0000000000'
+@export var api_key: String = '0000000000'
 # How many images following the same prompt to do
-@export var amount := 1
+@export var amount: int = 1
 # The exact size of the image to generate. If you put too high, you might have to wait longer
 # For a worker which can generate it
 # Try not to go lower than 512 on both sizes, as 512 is what the model has been trained on.
-@export var width := 512 # (int,64,1024,64)
-@export var height := 512 # (int,64,1024,64)
+@export_range(64, 1024, 64, "suffix:px") var width: int = 512 # (int,64,1024,64)
+@export_range(64, 1024, 64, "suffix:px") var height: int = 512 # (int,64,1024,64)
 # The steps correspond directly to the time it takes to get back your image.
 # Generally there's usually no reason to go above 50 unless you know what you're doing.
-@export var steps := 30 # (int,1,100)
+@export_range(1, 100, 1, "suffix:steps") var steps: int = 30 # (int,1,100)
 # Advanced: The sampler used to generate. Provides slight variations on the same prompt.
-@export var sampler_name := "k_euler_a" # (String, "k_lms", "k_heun", "k_euler", "k_euler_a", "k_dpm_2", "k_dpm_2_a", "k_dpm_fast", "k_dpm_adaptive", "k_dpmpp_2s_a", "k_dpmpp_2m", "dpmsolver")
+@export var sampler_name: String = "k_euler_a" # (String, "k_lms", "k_heun", "k_euler", "k_euler_a", "k_dpm_2", "k_dpm_2_a", "k_dpm_fast", "k_dpm_adaptive", "k_dpmpp_2s_a", "k_dpmpp_2m", "dpmsolver")
 # How closely to follow the prompt given
-@export var cfg_scale := 7.5 # (float,0,30,0.5)
+@export_range(0, 30, 0.5) var cfg_scale: float = 7.5 # (float,0,30,0.5)
 # The number of CLIP language processor layers to skip.
-@export var clip_skip := 1 # (int,1,12,1)
+@export_range(1, 12, 1, "suffix:layers") var clip_skip: int = 1 # (int,1,12,1)
 # How closely to follow the source image in img2img
-@export var denoising_strength := 0.7 # (float,0,1,0.01)
+@export_range(0, 1, 0.01) var denoising_strength: float = 0.7 # (float,0,1,0.01)
 # The unique seed for the prompt. If you pass a value in the seed and keep all the values the same
 # The same image will always be generated.
-@export var gen_seed := ''
+@export var gen_seed: String = ''
 # Post Processors to use.
-@export var post_processing := []
+@export var post_processing: Array = []
 # Loras to use. Each entry needs to be a dictionary in the form of
 #{"name": String, "model": float, "clip": float}
 @export var lora := []
 @export var tis := []
 # If set to True, will enable the karras noise scheduler
-@export var karras := true
+@export var karras: bool = true
 # If set to True, will activate the HiRes Fix
-@export var hires_fix := false
+@export var hires_fix: bool = false
 # If set to True, will mark this generation as NSFW and only workers which accept NSFW requests
 # Will fulfill it
-@export var nsfw := false
+@export var nsfw: bool = false
 # Only active is nsfw == false
 # Will request workers to censor accidentally generated NSFW images. 
 # If set to false, and a sfw request accidently generates nsfw content, the worker
 # will automatically set it to a black image.
-@export var censor_nsfw := true
+@export var censor_nsfw: bool = true
 # When true, will allow untrusted workers to also generate for this request.
-@export var trusted_workers := true
+@export var trusted_workers: bool = true
 # The model to be used to generate this request. If you change this, use the StableHordeModels class 
 # To ensure there is a worker serving that model first.
 # An empty array here picks the first available models from the workers
-@export var models := ["stable_diffusion"]
+@export var models: Array = ["stable_diffusion"]
 @export var source_image: Image
 # If true, the image will be sent as a URL to download instead of a base64 string
-@export var r2 := true
+@export var r2: bool = true
 # If true, the image will be stored permanently in a dataset that will be provided to LAION
 # top help train future models
-@export var shared := true
-@export var control_type := "none" # (String, "none", "canny", "hed", "depth", "normal", "openpose", "seg", "scribble", "fakescribbles", "hough")
-@export var dry_run := false
+@export var shared: bool = true
+@export var control_type: String = "none" # (String, "none", "canny", "hed", "depth", "normal", "openpose", "seg", "scribble", "fakescribbles", "hough")
+@export var dry_run: bool = false
 
 var all_image_textures := []
 var latest_image_textures := []
 # The open request UUID to track its status
-var async_request_id : String
+var async_request_id: String
 # We store the params sent to the current generation, then pass them to the AIImageTexture to remember them
 # They are replaced every time a new generation begins
-var imgen_params : Dictionary
+var imgen_params: Dictionary
 # When set to true, we will abort the current generation and try to retrieve whatever images we can
-var request_start_time : float # We use that to get the accurate amount of time the request took
-var async_retrievals_completed = 0
-var delete_sent = false
+var request_start_time: float # We use that to get the accurate amount of time the request took
+var async_retrievals_completed: int = 0
+var delete_sent: bool = false
 
 func generate(replacement_prompt := '', replacement_params := {}) -> void:
 	if state != States.READY:
@@ -140,7 +140,7 @@ func generate(replacement_prompt := '', replacement_params := {}) -> void:
 		imgen_params["tis"] = _get_tis_payload()
 	for param in replacement_params:
 		imgen_params[param] = replacement_params[param]
-	var submit_dict = {
+	var submit_dict: Dictionary = {
 		"prompt": prompt,
 		"params": imgen_params,
 		"nsfw": nsfw,
@@ -158,16 +158,16 @@ func generate(replacement_prompt := '', replacement_params := {}) -> void:
 		submit_dict["params"]["denoising_strength"] = denoising_strength
 	if replacement_prompt != '':
 		submit_dict['prompt'] = replacement_prompt
-	var body = JSON.new().stringify(submit_dict)
+	var body: String = JSON.new().stringify(submit_dict)
 #	print_debug(body)
-	var headers = [
+	var headers: Array = [
 		"Content-Type: application/json", 
 		"apikey: " + api_key,
 		"Client-Agent: " + client_agent,
 	]
-	var error = request(aihorde_url + "/api/v2/generate/async", headers, false, HTTPClient.METHOD_POST, body)
+	var error: Error = request(aihorde_url + "/api/v2/generate/async", headers, HTTPClient.METHOD_POST, body)
 	if error != OK:
-		var error_msg := "Something went wrong when initiating the stable horde request"
+		var error_msg: String = "Something went wrong when initiating the stable horde request"
 		push_error(error_msg)
 		state = States.READY
 		emit_signal("request_failed",error_msg)
@@ -194,7 +194,7 @@ func process_request(json_ret) -> void:
 		async_request_id = json_ret['id']
 		check_request_process(OngoingRequestOperations.CHECK)
 	elif 'done' in json_ret:
-		var operation = OngoingRequestOperations.CHECK
+		var operation: OngoingRequestOperations = OngoingRequestOperations.CHECK
 		if json_ret['done']:
 			operation = OngoingRequestOperations.GET
 		elif state == States.WORKING:
@@ -206,55 +206,54 @@ func process_request(json_ret) -> void:
 func check_request_process(operation := OngoingRequestOperations.CHECK) -> void:
 	# We do one check request per second
 	await get_tree().create_timer(1).timeout
-	var url = aihorde_url + "/api/v2/generate/check/" + async_request_id
-	var method = HTTPClient.METHOD_GET
+	var url: String = aihorde_url + "/api/v2/generate/check/" + async_request_id
+	var method := HTTPClient.METHOD_GET
 	if operation == OngoingRequestOperations.GET:
 		url = aihorde_url + "/api/v2/generate/status/" + async_request_id
 	elif operation == OngoingRequestOperations.CANCEL:
 		url = aihorde_url + "/api/v2/generate/status/" + async_request_id
 		method = HTTPClient.METHOD_DELETE
 		delete_sent = true
-	var error = request(
+	var error: Error = request(
 		url, 
-		["Client-Agent: " + client_agent], 
-		false, 
+		["Client-Agent: " + client_agent],  
 		method)
 	if state == States.WORKING and error != OK:
-		var error_msg := "Something went wrong when checking the status of Stable Horde Request: " + async_request_id
+		var error_msg: String = "Something went wrong when checking the status of Stable Horde Request: " + async_request_id
 		push_error(error_msg)
 		emit_signal("request_failed",error_msg)
 	elif state == States.CANCELLING and not error in [ERR_BUSY, OK] :
-		var error_msg := "Something went wrong when cancelling the Stable Horde Request: " + async_request_id
+		var error_msg: String = "Something went wrong when cancelling the Stable Horde Request: " + async_request_id
 		push_error(error_msg)
 		emit_signal("request_failed",error_msg)
 
 
 func _extract_images(generations_array: Array) -> void:
-	var timestamp := Time.get_unix_time_from_system()
+	var timestamp: float = Time.get_unix_time_from_system()
 	if generations_array.size() == 0:
 		complete_image_request()
 		return
 	for img_dict in generations_array:
-		var error
+		var error # unsure what its used for
 		var image: Image
 		async_retrievals_completed = 0
 		if 'https' in img_dict["img"]:
-			var image_retriever := R2ImageRetriever.new()
+			var image_retriever: R2ImageRetriever = R2ImageRetriever.new()
 			add_child(image_retriever)
 			image_retriever.connect(
-					"retrieval_failed", 
-					self, 
-					"_on_r2_retrieval_failed", 
-					[generations_array.size()])
+					"retrieval_failed",
+					Callable(self, "_on_r2_retrieval_failed"),
+					generations_array.size()
+			)
 			image_retriever.connect(
-					"retrieval_success", 
-					self, 
-					"_on_r2_retrieval_success", 
-					[img_dict,  timestamp, generations_array.size()])
+					"retrieval_success",
+					Callable(self, "_on_r2_retrieval_success"),
+					#[img_dict, timestamp, generations_array.size()],
+			)
 			image_retriever.download_image(img_dict["img"])
 		else:
-			var b64img = img_dict["img"]
-			var base64_bytes = Marshalls.base64_to_raw(b64img)
+			var b64img: String = img_dict["img"]
+			var base64_bytes: PackedByteArray = Marshalls.base64_to_raw(b64img)
 			# Just in case a worker sends us randomly a b64
 			async_retrievals_completed += 1
 			prepare_aitexture(base64_bytes, img_dict, timestamp)
@@ -265,14 +264,14 @@ func _return_empty() -> void:
 	complete_image_request()
 
 func prepare_aitexture(imgbuffer: PackedByteArray, img_dict: Dictionary, timestamp: int) -> AIImageTexture:
-	var image = Image.new()
-	var error = image.load_webp_from_buffer(imgbuffer)
+	var image: Image = Image.new()
+	var error: Error = image.load_webp_from_buffer(imgbuffer)
 	if error != OK:
-		var error_msg := "Couldn't load the image."
+		var error_msg: String = "Couldn't load the image."
 		push_error(error_msg)
 		emit_signal("request_failed",error_msg)
 		return null
-	var texture = AIImageTexture.new(
+	var texture: AIImageTexture = AIImageTexture.new(
 		prompt,
 		imgen_params,
 		img_dict["seed"],
@@ -290,7 +289,7 @@ func prepare_aitexture(imgbuffer: PackedByteArray, img_dict: Dictionary, timesta
 	return texture
 
 func complete_image_request() -> void:
-	var completed_payload = {
+	var completed_payload: Dictionary = {
 		"image_textures": latest_image_textures,
 		"elapsed_time": Time.get_ticks_msec() - request_start_time
 	}
@@ -299,7 +298,7 @@ func complete_image_request() -> void:
 	state = States.READY
 
 func complete_dry_run_request(kudos: int) -> void:
-	var completed_payload = {
+	var completed_payload: Dictionary = {
 		"kudos": kudos,
 		"elapsed_time": Time.get_ticks_msec() - request_start_time
 	}
@@ -330,12 +329,12 @@ func cancel_request() -> void:
 	state = States.CANCELLING
 
 func get_img2img_b64(image: Image) -> String:
-	var imgbuffer = image.save_png_to_buffer()
+	var imgbuffer: PackedByteArray = image.save_png_to_buffer()
 	return(Marshalls.raw_to_base64(imgbuffer))
 	
 func _get_loras_payload() -> Array:
 	"""We replace the name with the ID, to ensure we find it easy on the worker"""
-	var loras_array = []
+	var loras_array: Array = []
 	for item in lora:
 		var new_item = item.duplicate()
 		if new_item.has("id") and not new_item["name"].is_valid_int():
@@ -346,7 +345,7 @@ func _get_loras_payload() -> Array:
 		
 func _get_tis_payload() -> Array:
 	"""We replace the name with the ID, to ensure we find it easy on the worker"""
-	var tis_array = []
+	var tis_array: Array = []
 	for item in tis:
 		var new_item = item.duplicate()
 		if new_item.has("id") and not new_item["name"].is_valid_int():

@@ -5,8 +5,6 @@ extends VBoxContainer
 @onready var line_edit = $"%LineEdit"
 @onready var status = $"%Status"
 
-
-
 func _ready():
 	stable_horde_client.connect("images_generated", Callable(self, "_on_images_generated"))
 	stable_horde_client.connect("image_processing", Callable(self, "_on_image_process_update"))
@@ -21,12 +19,12 @@ func _on_Button_pressed():
 func _on_images_generated(textures_list):
 	status.text = "Status"
 	for texture in textures_list["image_textures"]:
-		var tr = TextureRect.new()
-		tr.custom_minimum_size = Vector2(128,128)
-		tr.expand = true
-		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr.texture = texture
-		grid.add_child(tr)
+		var tre = TextureRect.new()
+		tre.custom_minimum_size = Vector2(128,128)
+		tre.expand = true
+		tre.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tre.texture = texture
+		grid.add_child(tre)
 
 
 func _on_image_process_update(stats: Dictionary) -> void:

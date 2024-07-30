@@ -4,7 +4,7 @@ extends StableHordeHTTPRequest
 signal lora_info_retrieved(lora_details)
 signal lora_info_gathering_finished
 var url: String
-var default_ids : Array
+var default_ids: Array
 
 func _ready() -> void:
 	service_name = "CivitAI"
@@ -16,9 +16,9 @@ func fetch_metadata(final_url: String) -> void:
 		push_warning("CivitAI Lora RefCounted currently working. Cannot do more than 1 request at a time with the same Stable Horde Model RefCounted.")
 		return
 	state = States.WORKING
-	var error = request(final_url, [], false, HTTPClient.METHOD_GET)
+	var error: Error = request(final_url, [], HTTPClient.METHOD_GET)
 	if error != OK:
-		var error_msg := "Something went wrong when initiating the request"
+		var error_msg: String = "Something went wrong when initiating the request"
 		push_error(error_msg)
 		state = States.READY
 		emit_signal("request_failed",error_msg)
@@ -26,7 +26,7 @@ func fetch_metadata(final_url: String) -> void:
 # Function to overwrite to process valid return from the horde
 func process_request(json_ret) -> void:
 	if typeof(json_ret) != TYPE_DICTIONARY:
-		var error_msg : String = "Unexpected model reference received"
+		var error_msg: String = "Unexpected model reference received"
 		push_error("Unexpected model reference received" + ': ' +  str(json_ret))
 		emit_signal("request_failed",error_msg)
 		state = States.READY
@@ -35,12 +35,12 @@ func process_request(json_ret) -> void:
 		# Quick hack to treat individual items the same way
 		json_ret["items"] = [json_ret]
 	for entry in json_ret["items"]:
-		var lora = _parse_civitai_lora_data(entry)
+		var lora: Dictionary = _parse_civitai_lora_data(entry)
 		emit_signal("lora_info_retrieved", lora)
 	emit_signal("lora_info_gathering_finished")
 
 func _parse_civitai_lora_data(civitai_entry) -> Dictionary:
-	var lora_details = {
+	var lora_details: Dictionary = {
 		"name": civitai_entry["name"],
 		"id": int(civitai_entry["id"]),
 		"description": civitai_entry["description"],
@@ -50,7 +50,7 @@ func _parse_civitai_lora_data(civitai_entry) -> Dictionary:
 	}
 	if not lora_details["description"]:
 		lora_details["description"] = ''
-	var html_to_bbcode = {
+	var html_to_bbcode: Dictionary = {
 		"<p>": '',
 		"</p>": '\n',
 		"</b>": '[/b]',
@@ -102,7 +102,7 @@ func _parse_civitai_lora_data(civitai_entry) -> Dictionary:
 		lora_details["url"] = file.get("downloadUrl", "")
 	# If these two fields are not defined, the workers are not going to download it
 	# so we ignore it as well
-	var is_default = int(lora_details["id"]) in default_ids
+	var is_default: bool = int(lora_details["id"]) in default_ids
 	if not is_default and not lora_details["sha256"]:
 		lora_details["unusable"] = 'Attention! This LoRa is unusable because it does not provide file validation.'
 	elif not lora_details["url"]:
